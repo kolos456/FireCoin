@@ -15,64 +15,161 @@
             font-size: 2em;
             color: #333;
         }
-        .coin-button {
+        .modal {
+            display: block; /* Show modal by default */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
             cursor: pointer;
-            border: none;
-            background-color: transparent;
-            display: inline-block;
-            margin-top: 20px;
         }
-        .coin-button img {
-            width: 150px;
-            height: auto;
-            transition: transform 0.3s ease;
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
         }
-        .coin-button img:hover {
-            transform: scale(1.1);
-        }
-        .balance {
-            margin-top: 20px;
-            font-size: 1.5em;
-            color: #333;
+        .error {
+            color: red;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
-    <h1>Получите монеты!</h1>
-    <p>Нажмите на картинку, чтобы заработать монеты.</p>
-    
-    <div class="coin-button">
-        <img src="assets/coin.jpg" alt="Картинка для клика" id="coinImage">
+
+<h1>Мини-игра</h1>
+
+<!-- Модальное окно -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h2 id="modalTitle">Регистрация</h2>
+
+        <!-- Форма регистрации -->
+        <form id="registerForm" method="POST">
+            <input type="text" id="regUsername" name="username" placeholder="Имя пользователя" required>
+            <input type="password" id="regPassword" name="password" placeholder="Пароль" required>
+            <input type="password" id="regConfirmPassword" name="confirm_password" placeholder="Подтвердите пароль" required>
+            <span class="error" id="regError"></span>
+            <button type="submit">Зарегистрироваться</button>
+        </form>
+
+        <h2 id="loginTitle" style="display: none;">Вход</h2>
+
+        <!-- Форма входа -->
+        <form id="loginForm" method="POST" style="display: none;">
+            <input type="text" id="loginUsername" name="username" placeholder="Имя пользователя" required>
+            <input type="password" id="loginPassword" name="password" placeholder="Пароль" required>
+            <span class="error" id="loginError"></span>
+            <button type="submit">Войти</button>
+        </form>
     </div>
+</div>
 
-    <div class="balance">
-        Баланс: <span id="balance">0</span> монет
-    </div>
+<!-- Скрипт -->
+<script>
+    // Открытие модального окна при загрузке страницы
+    window.onload = function() {
+        document.getElementById("modal").style.display = "block";
+    };
 
-    <script>
-        let balance = 0;
+    // Закрытие модального окна
+    document.getElementById("closeModal").onclick = function() {
+        document.getElementById("modal").style.display = "none";
+    };
 
-        // Загрузить баланс при старте страницы (через AJAX)
-        window.onload = function() {
-            fetch('get_balance.php')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('balance').textContent = data.balance;
-                    balance = data.balance;
-                });
+    // Переход на форму регистрации
+    function showRegisterForm() {
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("registerForm").style.display = "block";
+        document.getElementById("modalTitle").innerText = "Регистрация";
+        document.getElementById("loginTitle").style.display = "none";
+    }
+
+    // Переход на форму входа
+    function showLoginForm() {
+        document.getElementById("registerForm").style.display = "none";
+        document.getElementById("loginForm").style.display = "block";
+        document.getElementById("loginTitle").style.display = "block";
+        document.getElementById("modalTitle").innerText = "Вход";
+    }
+
+    // Обработка формы регистрации
+    document.getElementById("registerForm").onsubmit = function(event) {
+        event.preventDefault();
+
+        var username = document.getElementById("regUsername").value;
+        var password = document.getElementById("regPassword").value;
+        var confirmPassword = document.getElementById("regConfirmPassword").value;
+
+        // Простая проверка пароля
+        if (password !== confirmPassword) {
+            document.getElementById("regError").innerText = "Пароли не совпадают.";
+            return;
+        }
+
+        // Отправка данных на сервер через AJAX
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "register.php", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                if (xhr.responseText === "success") {
+                    alert("Регистрация прошла успешно!");
+                    document.getElementById("modal").style.display = "none";
+                } else {
+                    document.getElementById("regError").innerText = xhr.responseText;
+                }
+            }
         };
+        xhr.send("username=" + username + "&password=" + password);
+    };
 
-        document.getElementById('coinImage').addEventListener('click', function() {
-            balance += 1; // За каждый клик добавляется 1 монета
-            document.getElementById('balance').textContent = balance;
+    // Обработка формы входа
+    document.getElementById("loginForm").onsubmit = function(event) {
+        event.preventDefault();
 
-            // Отправка AJAX-запроса на сервер для обновления баланса
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "update_balance.php", true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.send("balance=" + balance);
-        });
-    </script>
+        var username = document.getElementById("loginUsername").value;
+        var password = document.getElementById("loginPassword").value;
+
+        // Отправка данных на сервер через AJAX
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "login.php", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                if (xhr.responseText === "success") {
+                    alert("Вы успешно вошли!");
+                    document.getElementById("modal").style.display = "none";
+                } else {
+                    document.getElementById("loginError").innerText = xhr.responseText;
+                }
+            }
+        };
+        xhr.send("username=" + username + "&password=" + password);
+    };
+</script>
+
 </body>
 </html>
-
