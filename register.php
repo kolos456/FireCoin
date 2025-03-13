@@ -13,12 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Проверка, что имя пользователя уникально
-    $conn = new mysqli($servername, $username, $password, $dbname);
-    if ($conn->connect_error) {
-        die("Ошибка подключения: " . $conn->connect_error);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
+    if ($stmt === false) {
+        die('Ошибка подготовки запроса: ' . $conn->error);
     }
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -31,11 +30,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Вставляем нового пользователя в базу
         $stmt = $conn->prepare("INSERT INTO users (username, password, balance) VALUES (?, ?, 0)");
+        if ($stmt === false) {
+            die('Ошибка подготовки запроса: ' . $conn->error);
+        }
+
         $stmt->bind_param("ss", $username, $hashedPassword);
         if ($stmt->execute()) {
             echo "success";  // Возвращаем успешный ответ
         } else {
-            echo "Ошибка при создании пользователя.";
+            echo "Ошибка при создании пользователя: " . $stmt->error;
         }
     }
 }
