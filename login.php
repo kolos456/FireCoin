@@ -2,9 +2,9 @@
 header('Content-Type: application/json');
 
 // Подключаемся к базе данных
-$host = 'localhost';
-$user = 'root';
-$password = 'your_password';
+$host = 'mysql-firecoinbase.alwaysdata.net';
+$user = '403942';
+$password = 'hugabos223';
 $dbname = 'firecoinbase_bd';
 $conn = new mysqli($host, $user, $password, $dbname);
 
