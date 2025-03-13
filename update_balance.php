@@ -2,21 +2,30 @@
 session_start();
 include('db_config.php');
 
-if (isset($_SESSION['username']) && isset($_POST['balance'])) {
-    $username = $_SESSION['username'];
-    $balance = $_POST['balance'];
+// Проверка, что пользователь авторизован
+if (!isset($_SESSION['username'])) {
+    echo "Пользователь не авторизован.";
+    exit;
+}
 
-    // Подключаемся к базе данных
-    $conn = new mysqli($servername, $db_username, $db_password, $dbname);
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $balance = $_POST['balance'];
+    $username = $_SESSION['username'];
+
+    // Логирование полученного баланса
+    error_log('Обновление баланса пользователя ' . $username . ' на ' . $balance . ' монет.');
+
+    // Обновление баланса в базе данных
+    $stmt = $conn->prepare("UPDATE users SET balance = ? WHERE username = ?");
+    if ($stmt === false) {
+        die('Ошибка подготовки запроса: ' . $conn->error);
     }
 
-    // Обновляем баланс
-    $stmt = $conn->prepare("UPDATE users SET balance = ? WHERE username = ?");
     $stmt->bind_param("is", $balance, $username);
-    $stmt->execute();
-    $stmt->close();
-    $conn->close();
+    if ($stmt->execute()) {
+        echo "Баланс обновлен";
+    } else {
+        echo "Ошибка при обновлении баланса: " . $stmt->error;
+    }
 }
 ?>
