@@ -106,6 +106,10 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
+            // Отладка данных, отправляемых с формы
+            console.log("Username: " + username);
+            console.log("Password: " + password);
+
             // Отправка данных на сервер
             const formData = new FormData();
             formData.append('username', username);
