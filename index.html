@@ -3,152 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Регистрация и Мини-игра</title>
+    <title>Монеты</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+        }
+        .container {
             text-align: center;
             margin-top: 50px;
-            background-color: #f0f0f0;
         }
-        h1 {
-            font-size: 2em;
-            color: #333;
+        #coin {
+            cursor: pointer;
+            width: 100px;
+            height: 100px;
+            background-image: url('assets/coin.jpg');
+            background-size: cover;
+            border-radius: 50%;
+            margin-top: 20px;
         }
-        #modal {
-            display: block;
+        #balance {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        #loginModal, #registerModal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
         }
-        #modal-content {
+        .modal-content {
             background-color: white;
             padding: 20px;
-            margin: 50px auto;
+            margin: 10% auto;
             width: 300px;
-            border-radius: 8px;
+            border-radius: 10px;
         }
-        input {
-            margin-bottom: 10px;
-            padding: 8px;
+        .modal-content input {
             width: 100%;
-        }
-        button {
             padding: 10px;
-            width: 100%;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .coin-button {
-            cursor: pointer;
-            border: none;
-            background-color: transparent;
-            display: inline-block;
-            margin-top: 20px;
-        }
-        .coin-button img {
-            width: 150px;
-            height: auto;
-            transition: transform 0.3s ease;
-        }
-        .coin-button img:hover {
-            transform: scale(1.1);
-        }
-        .balance {
-            margin-top: 20px;
-            font-size: 1.5em;
-            color: #333;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
-    <h1>Добро пожаловать в Мини-игру!</h1>
 
-    <!-- Модальное окно для регистрации -->
-    <div id="modal">
-        <div id="modal-content">
-            <h2>Регистрация или Вход</h2>
-            <form id="registerForm">
-                <input type="text" id="username" placeholder="Имя пользователя" required><br>
-                <input type="password" id="password" placeholder="Пароль" required><br>
-                <button type="submit">Зарегистрироваться</button>
-            </form>
-            <p>Уже есть аккаунт? <a href="#">Войти</a></p>
+<div class="container">
+    <div id="balance">Баланс: 0 монет</div>
+    <div id="coin" onclick="addCoin()"></div>
+    
+    <!-- Модальное окно для входа -->
+    <div id="loginModal">
+        <div class="modal-content">
+            <h3>Вход</h3>
+            <input type="text" id="username" placeholder="Имя пользователя">
+            <input type="password" id="password" placeholder="Пароль">
+            <button onclick="login()">Войти</button>
+            <button onclick="toggleModal('loginModal')">Закрыть</button>
         </div>
     </div>
-
-    <!-- Мини-игра -->
-    <h2>Нажмите на картинку, чтобы заработать монеты!</h2>
-    <div class="coin-button">
-        <img src="assets/coin.jpg" alt="Нажми, чтобы получить монеты" id="coinImage">
+    
+    <!-- Модальное окно для регистрации -->
+    <div id="registerModal">
+        <div class="modal-content">
+            <h3>Регистрация</h3>
+            <input type="text" id="newUsername" placeholder="Имя пользователя">
+            <input type="password" id="newPassword" placeholder="Пароль">
+            <button onclick="register()">Зарегистрироваться</button>
+            <button onclick="toggleModal('registerModal')">Закрыть</button>
+        </div>
     </div>
-    <div class="balance">
-        Баланс: <span id="balance">0</span> монет
-    </div>
+</div>
 
-    <script>
-        // Регистрация и логика игры
-        let balance = 0;
+<script>
+    let balance = 0;
 
-        // Отправка данных формы регистрации
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+    function addCoin() {
+        balance++;
+        document.getElementById('balance').innerText = `Баланс: ${balance} монет`;
+    }
 
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+    function toggleModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+    }
 
-            // Отладка данных, отправляемых с формы
-            console.log("Username: " + username);
-            console.log("Password: " + password);
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        alert(`Вход для ${username}`);
+        toggleModal('loginModal');
+    }
 
-            // Отправка данных на сервер
-            const formData = new FormData();
-            formData.append('username', username);
-            formData.append('password', password);
+    function register() {
+        const username = document.getElementById('newUsername').value;
+        const password = document.getElementById('newPassword').value;
+        alert(`Пользователь ${username} зарегистрирован`);
+        toggleModal('registerModal');
+    }
+</script>
 
-            fetch('register.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(data => {
-                console.log(data);
-                if (data === 'success') {
-                    alert("Регистрация успешна!");
-                    document.getElementById('modal').style.display = 'none'; // Закрытие модального окна
-                } else {
-                    alert(data);
-                }
-            })
-            .catch(error => console.error('Ошибка:', error));
-        });
-
-        // Логика игры (клик на картинку)
-        document.getElementById('coinImage').addEventListener('click', function() {
-            balance += 1; // За каждый клик добавляется 1 монета
-            document.getElementById('balance').textContent = balance;
-
-            // Отправка обновленного баланса на сервер
-            const formData = new FormData();
-            formData.append('balance', balance);
-
-            fetch('update_balance.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(data => console.log(data))
-            .catch(error => console.error('Ошибка:', error));
-        });
-    </script>
 </body>
 </html>
