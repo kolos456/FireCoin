@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мини-игра</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            font-size: 2em;
+            color: #333;
+        }
+        .coin-button {
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .coin-button img {
+            width: 150px;
+            height: auto;
+            transition: transform 0.3s ease;
+        }
+        .coin-button img:hover {
+            transform: scale(1.1);
+        }
+        .balance {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Получите монеты!</h1>
+    <p>Нажмите на картинку, чтобы заработать монеты.</p>
+    
+    <div class="coin-button">
+        <img src="assets/coin.jpg" alt="Картинка для клика" id="coinImage">
+    </div>
+
+    <div class="balance">
+        Баланс: <span id="balance">0</span> монет
+    </div>
+
+    <script>
+        let balance = 0;
+
+        // Загрузить баланс при старте страницы (через AJAX)
+        window.onload = function() {
+            fetch('get_balance.php')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('balance').textContent = data.balance;
+                    balance = data.balance;
+                });
+        };
+
+        document.getElementById('coinImage').addEventListener('click', function() {
+            balance += 1; // За каждый клик добавляется 1 монета
+            document.getElementById('balance').textContent = balance;
+
+            // Отправка AJAX-запроса на сервер для обновления баланса
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "update_balance.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send("balance=" + balance);
+        });
+    </script>
+</body>
+</html>
+
