@@ -1,40 +1,50 @@
 <?php
-session_start();
-include('db_config.php');
+// Настройки подключения к базе данных
+$servername = "localhost";
+$username_db = "root"; // Ваши данные для доступа к базе данных
+$password_db = "";
+$dbname = "firecoinbase_bd";
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+// Подключение к базе данных
+$conn = new mysqli($servername, $username_db, $password_db, $dbname);
 
-    // Простейшая проверка пароля
-    if (strlen($password) < 6) {
-        echo "Пароль должен содержать хотя бы 6 символов.";
-        exit;
-    }
-
-    // Хеширование пароля
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-    // Проверка на существование пользователя
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        echo "Пользователь с таким именем уже существует.";
-    } else {
-        // Добавление нового пользователя в базу данных
-        $stmt = $conn->prepare("INSERT INTO users (username, password, balance) VALUES (?, ?, ?)");
-        $balance = 0; // Начальный баланс
-        $stmt->bind_param("ssi", $username, $hashedPassword, $balance);
-
-        if ($stmt->execute()) {
-            $_SESSION['username'] = $username;
-            echo "success";
-        } else {
-            echo "Ошибка при регистрации: " . $stmt->error;
-        }
-    }
+// Проверка подключения
+if ($conn->connect_error) {
+    die("Ошибка подключения: " . $conn->connect_error);
 }
+
+// Получение данных из формы
+$username = $_POST['username'];
+$password = $_POST['password'];
+
+// Отладочная информация
+error_log("Имя пользователя: " . $username); // Логируем имя пользователя
+error_log("Пароль: " . $password); // Логируем пароль
+
+// Проверка, что поля не пустые
+if (empty($username) || empty($password)) {
+    echo "Все поля должны быть заполнены!";
+    exit();
+}
+
+// Хеширование пароля перед сохранением в базе данных
+$hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+// SQL-запрос для добавления нового пользователя
+$sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+
+// Подготовка и выполнение SQL-запроса
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ss", $username, $hashed_password);
+
+// Выполнение запроса и проверка на успешность
+if ($stmt->execute()) {
+    echo "success"; // Успешная регистрация
+} else {
+    echo "Ошибка: " . $stmt->error; // Ошибка при выполнении запроса
+}
+
+// Закрытие соединения с базой данных
+$stmt->close();
+$conn->close();
 ?>
