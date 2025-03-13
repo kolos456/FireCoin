@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мини-игра</title>
+    <title>Регистрация и Мини-игра</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,161 +15,136 @@
             font-size: 2em;
             color: #333;
         }
-        .modal {
-            display: block; /* Show modal by default */
+        #modal {
+            display: block;
             position: fixed;
-            z-index: 1;
-            left: 0;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.4);
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
         }
-        .modal-content {
-            background-color: #fff;
-            margin: 15% auto;
+        #modal-content {
+            background-color: white;
             padding: 20px;
-            border: 1px solid #888;
+            margin: 50px auto;
             width: 300px;
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
+            border-radius: 8px;
         }
         input {
+            margin-bottom: 10px;
+            padding: 8px;
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            box-sizing: border-box;
         }
-        .error {
-            color: red;
-            font-size: 0.9em;
+        button {
+            padding: 10px;
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .coin-button {
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .coin-button img {
+            width: 150px;
+            height: auto;
+            transition: transform 0.3s ease;
+        }
+        .coin-button img:hover {
+            transform: scale(1.1);
+        }
+        .balance {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #333;
         }
     </style>
 </head>
 <body>
+    <h1>Добро пожаловать в Мини-игру!</h1>
 
-<h1>Мини-игра</h1>
-
-<!-- Модальное окно -->
-<div id="modal" class="modal">
-    <div class="modal-content">
-        <span class="close" id="closeModal">&times;</span>
-        <h2 id="modalTitle">Регистрация</h2>
-
-        <!-- Форма регистрации -->
-        <form id="registerForm" method="POST">
-            <input type="text" id="regUsername" name="username" placeholder="Имя пользователя" required>
-            <input type="password" id="regPassword" name="password" placeholder="Пароль" required>
-            <input type="password" id="regConfirmPassword" name="confirm_password" placeholder="Подтвердите пароль" required>
-            <span class="error" id="regError"></span>
-            <button type="submit">Зарегистрироваться</button>
-        </form>
-
-        <h2 id="loginTitle" style="display: none;">Вход</h2>
-
-        <!-- Форма входа -->
-        <form id="loginForm" method="POST" style="display: none;">
-            <input type="text" id="loginUsername" name="username" placeholder="Имя пользователя" required>
-            <input type="password" id="loginPassword" name="password" placeholder="Пароль" required>
-            <span class="error" id="loginError"></span>
-            <button type="submit">Войти</button>
-        </form>
+    <!-- Модальное окно для регистрации -->
+    <div id="modal">
+        <div id="modal-content">
+            <h2>Регистрация или Вход</h2>
+            <form id="registerForm">
+                <input type="text" id="username" placeholder="Имя пользователя" required><br>
+                <input type="password" id="password" placeholder="Пароль" required><br>
+                <button type="submit">Зарегистрироваться</button>
+            </form>
+            <p>Уже есть аккаунт? <a href="#">Войти</a></p>
+        </div>
     </div>
-</div>
 
-<!-- Скрипт -->
-<script>
-    // Открытие модального окна при загрузке страницы
-    window.onload = function() {
-        document.getElementById("modal").style.display = "block";
-    };
+    <!-- Мини-игра -->
+    <h2>Нажмите на картинку, чтобы заработать монеты!</h2>
+    <div class="coin-button">
+        <img src="assets/coin.jpg" alt="Нажми, чтобы получить монеты" id="coinImage">
+    </div>
+    <div class="balance">
+        Баланс: <span id="balance">0</span> монет
+    </div>
 
-    // Закрытие модального окна
-    document.getElementById("closeModal").onclick = function() {
-        document.getElementById("modal").style.display = "none";
-    };
+    <script>
+        // Регистрация и логика игры
+        let balance = 0;
 
-    // Переход на форму регистрации
-    function showRegisterForm() {
-        document.getElementById("loginForm").style.display = "none";
-        document.getElementById("registerForm").style.display = "block";
-        document.getElementById("modalTitle").innerText = "Регистрация";
-        document.getElementById("loginTitle").style.display = "none";
-    }
+        // Отправка данных формы регистрации
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    // Переход на форму входа
-    function showLoginForm() {
-        document.getElementById("registerForm").style.display = "none";
-        document.getElementById("loginForm").style.display = "block";
-        document.getElementById("loginTitle").style.display = "block";
-        document.getElementById("modalTitle").innerText = "Вход";
-    }
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
 
-    // Обработка формы регистрации
-    document.getElementById("registerForm").onsubmit = function(event) {
-        event.preventDefault();
+            // Отправка данных на сервер
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
 
-        var username = document.getElementById("regUsername").value;
-        var password = document.getElementById("regPassword").value;
-        var confirmPassword = document.getElementById("regConfirmPassword").value;
-
-        // Простая проверка пароля
-        if (password !== confirmPassword) {
-            document.getElementById("regError").innerText = "Пароли не совпадают.";
-            return;
-        }
-
-        // Отправка данных на сервер через AJAX
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "register.php", true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                if (xhr.responseText === "success") {
-                    alert("Регистрация прошла успешно!");
-                    document.getElementById("modal").style.display = "none";
+            fetch('register.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+                if (data === 'success') {
+                    alert("Регистрация успешна!");
+                    document.getElementById('modal').style.display = 'none'; // Закрытие модального окна
                 } else {
-                    document.getElementById("regError").innerText = xhr.responseText;
+                    alert(data);
                 }
-            }
-        };
-        xhr.send("username=" + username + "&password=" + password);
-    };
+            })
+            .catch(error => console.error('Ошибка:', error));
+        });
 
-    // Обработка формы входа
-    document.getElementById("loginForm").onsubmit = function(event) {
-        event.preventDefault();
+        // Логика игры (клик на картинку)
+        document.getElementById('coinImage').addEventListener('click', function() {
+            balance += 1; // За каждый клик добавляется 1 монета
+            document.getElementById('balance').textContent = balance;
 
-        var username = document.getElementById("loginUsername").value;
-        var password = document.getElementById("loginPassword").value;
+            // Отправка обновленного баланса на сервер
+            const formData = new FormData();
+            formData.append('balance', balance);
 
-        // Отправка данных на сервер через AJAX
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "login.php", true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                if (xhr.responseText === "success") {
-                    alert("Вы успешно вошли!");
-                    document.getElementById("modal").style.display = "none";
-                } else {
-                    document.getElementById("loginError").innerText = xhr.responseText;
-                }
-            }
-        };
-        xhr.send("username=" + username + "&password=" + password);
-    };
-</script>
-
+            fetch('update_balance.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error('Ошибка:', error));
+        });
+    </script>
 </body>
 </html>
