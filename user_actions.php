@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';  // или адрес вашего сервера
+$host = 'mysql-firecoinbase.alwaysdata.net';  // или адрес вашего сервера
 $dbname = 'firecoinbase_bd';
-$username = 'root';  // имя пользователя MySQL
-$password = '';  // пароль пользователя MySQL
+$username = '403942';  // имя пользователя MySQL
+$password = 'hugabos223';  // пароль пользователя MySQL
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
