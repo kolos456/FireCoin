@@ -1,23 +1,22 @@
 <?php
 session_start();
-include('db_config.php'); // Подключаем базу данных
+include('db_config.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Проверка на пустое имя пользователя или пароль
-    if (empty($username) || empty($password)) {
-        echo "Имя пользователя и пароль не могут быть пустыми.";
+    // Простейшая проверка пароля
+    if (strlen($password) < 6) {
+        echo "Пароль должен содержать хотя бы 6 символов.";
         exit;
     }
 
-    // Проверка, что имя пользователя уникально
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
-    if ($stmt === false) {
-        die('Ошибка подготовки запроса: ' . $conn->error);
-    }
+    // Хеширование пароля
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
+    // Проверка на существование пользователя
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -25,20 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($result->num_rows > 0) {
         echo "Пользователь с таким именем уже существует.";
     } else {
-        // Хэшируем пароль перед сохранением в базе
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        // Добавление нового пользователя в базу данных
+        $stmt = $conn->prepare("INSERT INTO users (username, password, balance) VALUES (?, ?, ?)");
+        $balance = 0; // Начальный баланс
+        $stmt->bind_param("ssi", $username, $hashedPassword, $balance);
 
-        // Вставляем нового пользователя в базу
-        $stmt = $conn->prepare("INSERT INTO users (username, password, balance) VALUES (?, ?, 0)");
-        if ($stmt === false) {
-            die('Ошибка подготовки запроса: ' . $conn->error);
-        }
-
-        $stmt->bind_param("ss", $username, $hashedPassword);
         if ($stmt->execute()) {
-            echo "success";  // Возвращаем успешный ответ
+            $_SESSION['username'] = $username;
+            echo "success";
         } else {
-            echo "Ошибка при создании пользователя: " . $stmt->error;
+            echo "Ошибка при регистрации: " . $stmt->error;
         }
     }
 }
